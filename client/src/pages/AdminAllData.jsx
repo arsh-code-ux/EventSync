@@ -21,7 +21,6 @@ export default function AdminAllData() {
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
       if (!token) {
-        alert('Admin access required');
         navigate('/admin/login');
         return;
       }
@@ -63,7 +62,6 @@ export default function AdminAllData() {
       setLoading(false);
     } catch (err) {
       console.error('Error fetching data:', err);
-      alert('Failed to fetch data. Please check your admin access.');
       setLoading(false);
     }
   };
