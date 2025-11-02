@@ -20,9 +20,11 @@ export default function AdminAllData() {
 
   const fetchAllData = async () => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      // Check for both adminToken and regular token
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('eventsync_token') || localStorage.getItem('token');
+      
       if (!token) {
-        navigate('/admin/login');
+        navigate('/admin/login', { state: { from: '/admin/all-data' } });
         return;
       }
 

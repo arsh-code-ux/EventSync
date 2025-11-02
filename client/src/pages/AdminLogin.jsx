@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import api from '../api/axios'
 
@@ -10,6 +10,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false)
   const { setUser } = useContext(AuthContext)
   const nav = useNavigate()
+  const location = useLocation()
 
   const submit = async (e) => {
     e.preventDefault()
@@ -23,7 +24,10 @@ export default function AdminLogin() {
       localStorage.setItem('eventsync_token', token)
       localStorage.setItem('eventsync_user', JSON.stringify(user))
       if (setUser) setUser(user) // Update context if available
-      nav('/admin')
+      
+      // Redirect to the page user came from, or default to admin dashboard
+      const from = location.state?.from || '/admin'
+      nav(from)
     } catch (err) {
       console.error('Admin login error:', err)
       setError(err?.response?.data?.message || 'Admin login failed')
