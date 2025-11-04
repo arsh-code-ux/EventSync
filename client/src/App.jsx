@@ -16,6 +16,7 @@ import AdminPanel from './pages/AdminPanel';
 import AdminAllData from './pages/AdminAllData';
 import AdminLogin from './pages/AdminLogin';
 import AdminRegister from './pages/AdminRegister';
+import CreateEvent from './pages/CreateEvent';
 import Profile from './pages/Profile';
 import { AuthProvider } from './context/AuthContext.jsx';
 
@@ -37,6 +38,7 @@ const App = () => {
         <Route path="/admit-card/:registrationId" element={<AdmitCard />} />
         <Route path="/my-registrations" element={<MyRegistrations />} />
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/admin/create-event" element={<CreateEvent />} />
         <Route path="/admin/all-data" element={<AdminAllData />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/register" element={<AdminRegister />} />
