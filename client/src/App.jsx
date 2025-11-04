@@ -7,6 +7,7 @@ import Events from './pages/Events';
 import Home from './pages/Home';
 import RegisterForm from './pages/RegisterForm';
 import EventRegistration from './pages/EventRegistration';
+import EventDetails from './pages/EventDetails';
 import AdmitCard from './pages/AdmitCard';
 import MyRegistrations from './pages/MyRegistrations';
 import Dashboard from './pages/Dashboard';
@@ -29,6 +30,7 @@ const App = () => {
         <Route path="/about" element={<About />} />
         <Route path="/why-events" element={<WhyEvents />} />
         <Route path="/events" element={<Events />} />
+        <Route path="/events/:id" element={<EventDetails />} />
         <Route path="/events/:id/register" element={<EventRegistration />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
