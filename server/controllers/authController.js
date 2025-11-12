@@ -38,10 +38,41 @@ const login = async (req, res) => {
 
 const adminLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: 'Missing fields' });
+    const { email, password, adminKey } = req.body;
+    if (!email || !password || !adminKey) return res.status(400).json({ message: 'Email, password and adminKey are required' });
+
     const admin = await Admin.findOne({ email });
     if (!admin) return res.status(400).json({ message: 'Invalid admin credentials' });
+
+    // If account is blocked, disallow login
+    if (admin.isBlocked) return res.status(403).json({ message: 'Account is blocked due to multiple failed admin key attempts' });
+
+    // Ensure server admin passkey is configured
+    const SERVER_KEY = process.env.ADMIN_PASSKEY;
+    if (!SERVER_KEY) {
+      console.error('ADMIN_PASSKEY not configured in environment');
+      return res.status(500).json({ message: 'Server not configured for admin key authentication' });
+    }
+
+    // Check admin key first. If wrong, increment attempts and possibly block.
+    if (adminKey !== SERVER_KEY) {
+      admin.adminKeyAttempts = (admin.adminKeyAttempts || 0) + 1;
+      if (admin.adminKeyAttempts >= 3) {
+        admin.isBlocked = true;
+      }
+      await admin.save();
+      if (admin.isBlocked) {
+        return res.status(403).json({ message: 'Account blocked after multiple failed admin key attempts' });
+      }
+      return res.status(400).json({ message: `Invalid admin key. Attempts: ${admin.adminKeyAttempts}/3` });
+    }
+
+    // adminKey correct -> reset attempts if any
+    if (admin.adminKeyAttempts && admin.adminKeyAttempts > 0) {
+      admin.adminKeyAttempts = 0;
+      await admin.save();
+    }
+
     const match = await bcrypt.compare(password, admin.password);
     if (!match) return res.status(400).json({ message: 'Invalid admin credentials' });
     const token = jwt.sign({ id: admin._id, email: admin.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -54,8 +85,21 @@ const adminLogin = async (req, res) => {
 
 const adminRegister = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) return res.status(400).json({ message: 'Missing fields' });
+    const { name, email, password, adminKey } = req.body;
+    if (!name || !email || !password || !adminKey) return res.status(400).json({ message: 'Name, email, password and adminKey are required' });
+
+    // Ensure server admin passkey is configured
+    const SERVER_KEY = process.env.ADMIN_PASSKEY;
+    if (!SERVER_KEY) {
+      console.error('ADMIN_PASSKEY not configured in environment');
+      return res.status(500).json({ message: 'Server not configured for admin key authentication' });
+    }
+
+    // Require correct admin key for registration
+    if (adminKey !== SERVER_KEY) {
+      return res.status(400).json({ message: 'Invalid admin key' });
+    }
+
     const existing = await Admin.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Admin email already in use' });
     const hash = await bcrypt.hash(password, 10);
@@ -71,21 +115,25 @@ const adminRegister = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { name, email } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.id || req.user._id;
 
-    // Check if email is already taken by another user
+    // Determine if user is admin or regular user by checking the collection name
+    const isAdmin = req.user.constructor.modelName === 'Admin';
+    const Model = isAdmin ? Admin : User;
+
+    // Check if email is already taken by another user in the same collection
     if (email !== req.user.email) {
-      const existing = await User.findOne({ email, _id: { $ne: userId } });
+      const existing = await Model.findOne({ email, _id: { $ne: userId } });
       if (existing) return res.status(400).json({ message: 'Email already in use' });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
+    const updatedUser = await Model.findByIdAndUpdate(
       userId,
       { name, email },
       { new: true }
     ).select('-password');
 
-    res.json({ user: { id: updatedUser._id, name: updatedUser.name, email: updatedUser.email } });
+    res.json({ user: { id: updatedUser._id, name: updatedUser.name, email: updatedUser.email, isAdmin } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -95,9 +143,13 @@ const updateProfile = async (req, res) => {
 const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.id || req.user._id;
 
-    const user = await User.findById(userId);
+    // Determine if user is admin or regular user
+    const isAdmin = req.user.constructor.modelName === 'Admin';
+    const Model = isAdmin ? Admin : User;
+
+    const user = await Model.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     // Verify current password
@@ -118,8 +170,13 @@ const changePassword = async (req, res) => {
 
 const deleteAccount = async (req, res) => {
   try {
-    const userId = req.user.id;
-    await User.findByIdAndDelete(userId);
+    const userId = req.user.id || req.user._id;
+    
+    // Determine if user is admin or regular user
+    const isAdmin = req.user.constructor.modelName === 'Admin';
+    const Model = isAdmin ? Admin : User;
+    
+    await Model.findByIdAndDelete(userId);
     res.json({ message: 'Account deleted successfully' });
   } catch (err) {
     console.error(err);
@@ -127,4 +184,15 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-module.exports = { register, login, adminLogin, adminRegister, updateProfile, changePassword, deleteAccount };
+// Returns whether ADMIN_PASSKEY is configured on the server
+const adminKeyStatus = async (req, res) => {
+  try {
+    const enabled = !!process.env.ADMIN_PASSKEY;
+    res.json({ enabled });
+  } catch (err) {
+    console.error('adminKeyStatus error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = { register, login, adminLogin, adminRegister, updateProfile, changePassword, deleteAccount, adminKeyStatus };

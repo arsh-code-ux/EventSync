@@ -6,8 +6,10 @@ import api from '../api/axios'
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [adminKey, setAdminKey] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [keyConfigured, setKeyConfigured] = useState(null)
   const { setUser } = useContext(AuthContext)
   const nav = useNavigate()
   const location = useLocation()
@@ -18,7 +20,7 @@ export default function AdminLogin() {
     setLoading(true)
     try {
       console.log('Admin login attempt:', { email })
-      const res = await api.post('/auth/admin/login', { email, password })
+      const res = await api.post('/auth/admin/login', { email, password, adminKey })
       const { token, user } = res.data
       console.log('Admin login successful:', user)
       localStorage.setItem('eventsync_token', token)
@@ -35,6 +37,22 @@ export default function AdminLogin() {
       setLoading(false)
     }
   }
+
+  // Check whether server has ADMIN_PASSKEY configured
+  React.useEffect(() => {
+    let mounted = true
+    api.get('/auth/admin/key-status')
+      .then(res => {
+        if (!mounted) return
+        setKeyConfigured(res.data?.enabled === true)
+      })
+      .catch(err => {
+        console.error('Failed to fetch admin key status', err)
+        if (!mounted) return
+        setKeyConfigured(false)
+      })
+    return () => { mounted = false }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 flex items-center justify-center px-4 py-12">
@@ -108,6 +126,25 @@ export default function AdminLogin() {
                   required
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Admin Key
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  value={adminKey}
+                  onChange={e => setAdminKey(e.target.value)}
+                  placeholder="Enter admin passkey"
+                  className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all bg-white/50"
+                  required
+                />
+              </div>
+              {keyConfigured === false && (
+                <p className="text-xs text-yellow-600 mt-2">Admin key not configured on server. Ask the maintainer to set ADMIN_PASSKEY.</p>
+              )}
             </div>
 
             <button 

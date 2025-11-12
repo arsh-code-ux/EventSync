@@ -3,17 +3,9 @@ import { Link } from 'react-router-dom';
 
 const About = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [countUp, setCountUp] = useState({ students: 0, events: 0, faculty: 0, awards: 0 });
   const [scrollY, setScrollY] = useState(0);
   const [activeFeature, setActiveFeature] = useState(0);
   const [hoveredValue, setHoveredValue] = useState(null);
-
-  const stats = [
-    { label: 'Students', value: 5000, icon: '👨‍🎓', suffix: '+', description: 'Bright minds learning together' },
-    { label: 'Events/Year', value: 150, icon: '🎉', suffix: '+', description: 'Opportunities to grow' },
-    { label: 'Faculty Members', value: 200, icon: '👨‍🏫', suffix: '+', description: 'Expert mentors guiding you' },
-    { label: 'Awards Won', value: 75, icon: '🏆', suffix: '+', description: 'Excellence recognized' }
-  ];
 
   const values = [
     { 
@@ -93,28 +85,6 @@ const About = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Counter animation
-  useEffect(() => {
-    const duration = 2000;
-    const steps = 60;
-    const stepDuration = duration / steps;
-
-    stats.forEach(stat => {
-      let current = 0;
-      const increment = stat.value / steps;
-      
-      const timer = setInterval(() => {
-        current += increment;
-        if (current >= stat.value) {
-          setCountUp(prev => ({ ...prev, [stat.label.toLowerCase().split('/')[0]]: stat.value }));
-          clearInterval(timer);
-        } else {
-          setCountUp(prev => ({ ...prev, [stat.label.toLowerCase().split('/')[0]]: Math.floor(current) }));
-        }
-      }, stepDuration);
-    });
-  }, []);
-
   // Auto-rotate features
   useEffect(() => {
     const interval = setInterval(() => {
@@ -156,13 +126,6 @@ const About = () => {
               Empowering minds, building futures, and creating leaders who transform the world
             </p>
             <div className="flex justify-center gap-4 animate-fade-in">
-              <button 
-                onClick={() => document.getElementById('stats').scrollIntoView({ behavior: 'smooth' })} 
-                className="group bg-white text-slate-800 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
-              >
-                <span>Discover Our Impact</span>
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
-              </button>
               <Link to="/events">
                 <button className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-slate-800 transition-all duration-300 transform hover:scale-105">
                   Explore Events
@@ -177,34 +140,6 @@ const About = () => {
           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
-        </div>
-      </div>
-
-      {/* Interactive Stats Section with Counter Animation */}
-      <div id="stats" className="relative -mt-20 z-20 mb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <div 
-                key={index} 
-                className="group bg-white rounded-3xl shadow-2xl p-8 text-center transform hover:scale-110 transition-all duration-500 hover:shadow-cyan-200 cursor-pointer relative overflow-hidden"
-                onMouseEnter={() => setHoveredValue(index)}
-                onMouseLeave={() => setHoveredValue(null)}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-teal-500/0 group-hover:from-cyan-500/10 group-hover:to-teal-500/10 transition-all duration-500"></div>
-                <div className="relative z-10">
-                  <div className="text-6xl mb-4 group-hover:scale-125 transition-transform duration-300">{stat.icon}</div>
-                  <div className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600 mb-2">
-                    {countUp[stat.label.toLowerCase().split('/')[0]] || 0}{stat.suffix}
-                  </div>
-                  <div className="text-gray-600 font-semibold text-lg mb-2">{stat.label}</div>
-                  <div className={`text-sm text-gray-500 transition-all duration-300 ${hoveredValue === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-                    {stat.description}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 

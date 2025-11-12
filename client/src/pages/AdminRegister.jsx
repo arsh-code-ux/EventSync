@@ -6,9 +6,12 @@ export default function AdminRegister() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [adminKey, setAdminKey] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const nav = useNavigate()
+
+  const [keyConfigured, setKeyConfigured] = useState(null)
 
   const submit = async (e) => {
     e.preventDefault()
@@ -16,7 +19,7 @@ export default function AdminRegister() {
     setLoading(true)
     
     try {
-      const res = await api.post('/auth/admin/register', { name, email, password })
+      const res = await api.post('/auth/admin/register', { name, email, password, adminKey })
       const { token, user } = res.data
       localStorage.setItem('eventsync_token', token)
       localStorage.setItem('eventsync_user', JSON.stringify(user))
@@ -27,6 +30,14 @@ export default function AdminRegister() {
       setLoading(false)
     }
   }
+
+  React.useEffect(() => {
+    let mounted = true
+    api.get('/auth/admin/key-status')
+      .then(res => { if (!mounted) return; setKeyConfigured(res.data?.enabled === true) })
+      .catch(err => { console.error('Failed to fetch admin key status', err); if (!mounted) return; setKeyConfigured(false) })
+    return () => { mounted = false }
+  }, [])
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center">

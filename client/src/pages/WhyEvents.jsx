@@ -160,36 +160,6 @@ const WhyEvents = () => {
         </div>
       </div>
 
-      {/* Impact Stats */}
-      <div className="relative -mt-16 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-3xl shadow-2xl p-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-              <div className="group cursor-pointer">
-                <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">📅</div>
-                <div className="text-3xl font-bold text-cyan-600">150+</div>
-                <div className="text-gray-600 text-sm">Events/Year</div>
-              </div>
-              <div className="group cursor-pointer">
-                <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">👥</div>
-                <div className="text-3xl font-bold text-purple-600">5000+</div>
-                <div className="text-gray-600 text-sm">Participants</div>
-              </div>
-              <div className="group cursor-pointer">
-                <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">🏆</div>
-                <div className="text-3xl font-bold text-pink-600">75+</div>
-                <div className="text-gray-600 text-sm">Awards Won</div>
-              </div>
-              <div className="group cursor-pointer">
-                <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">😊</div>
-                <div className="text-3xl font-bold text-green-600">98%</div>
-                <div className="text-gray-600 text-sm">Satisfaction</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Event Types Showcase */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
